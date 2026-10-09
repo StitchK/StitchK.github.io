@@ -1,0 +1,407 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Speedrun Ethereum Tokenization Checkpoint 3 - MetaMask Mint 交易耗尽 Gas | Stitch's Blog</title><meta name="author" content="Zeo Kuang"><meta name="copyright" content="Zeo Kuang"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Checkpoint 3：MetaMask Mint 交易耗尽 gas 挑战地址：https:&#x2F;&#x2F;speedrunethereum.com&#x2F;challenge&#x2F;tokenization 本文是 Speedrun Ethereum Tokenization 系列第二篇，记录 Checkpoint 3 中 Mint NFT 失败的完整排错过程。 隐私说明：本文不包含真实钱包地址、交易哈希、部署 URL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Speedrun Ethereum Tokenization Checkpoint 3 - MetaMask Mint 交易耗尽 Gas">
+<meta property="og:url" content="http://example.com/2026/10/09/speedrun-tokenization-checkpoint-3-mint/index.html">
+<meta property="og:site_name" content="Stitch&#39;s Blog">
+<meta property="og:description" content="Checkpoint 3：MetaMask Mint 交易耗尽 gas 挑战地址：https:&#x2F;&#x2F;speedrunethereum.com&#x2F;challenge&#x2F;tokenization 本文是 Speedrun Ethereum Tokenization 系列第二篇，记录 Checkpoint 3 中 Mint NFT 失败的完整排错过程。 隐私说明：本文不包含真实钱包地址、交易哈希、部署 URL">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/profile_photo.jpg">
+<meta property="article:published_time" content="2026-10-08T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-09T02:03:22.807Z">
+<meta property="article:author" content="Zeo Kuang">
+<meta property="article:tag" content="EIP-7702">
+<meta property="article:tag" content="ERC-721">
+<meta property="article:tag" content="MetaMask">
+<meta property="article:tag" content="Problems solving">
+<meta property="article:tag" content="Speedrun Ethereum">
+<meta property="article:tag" content="Tokenization">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/profile_photo.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Speedrun Ethereum Tokenization Checkpoint 3 - MetaMask Mint 交易耗尽 Gas",
+  "url": "http://example.com/2026/10/09/speedrun-tokenization-checkpoint-3-mint/",
+  "image": "http://example.com/img/profile_photo.jpg",
+  "datePublished": "2026-10-08T16:00:00.000Z",
+  "dateModified": "2026-10-09T02:03:22.807Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Zeo Kuang",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/profile_photo.jpg"><link rel="canonical" href="http://example.com/2026/10/09/speedrun-tokenization-checkpoint-3-mint/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Speedrun Ethereum Tokenization Checkpoint 3 - MetaMask Mint 交易耗尽 Gas',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(/img/background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/profile_photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-book"></i><span> 文章</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/todo-list/"><i class="fa-fw fas fa-list-alt"></i><span> ToDo</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/contact/"><i class="fa-fw fas fa-comments"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Stitch's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Speedrun Ethereum Tokenization Checkpoint 3 - MetaMask Mint 交易耗尽 Gas</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-book"></i><span> 文章</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/todo-list/"><i class="fa-fw fas fa-list-alt"></i><span> ToDo</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/contact/"><i class="fa-fw fas fa-comments"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Speedrun Ethereum Tokenization Checkpoint 3 - MetaMask Mint 交易耗尽 Gas</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-10-08T16:00:00.000Z" title="发表于 2026-10-09 00:00:00">2026-10-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-10-09T02:03:22.807Z" title="更新于 2026-10-09 10:03:22">2026-10-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Solidity/">Solidity</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Solidity/Block-Chain/">Block Chain</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Checkpoint-3：MetaMask-Mint-交易耗尽-gas"><a href="#Checkpoint-3：MetaMask-Mint-交易耗尽-gas" class="headerlink" title="Checkpoint 3：MetaMask Mint 交易耗尽 gas"></a>Checkpoint 3：MetaMask Mint 交易耗尽 gas</h1><blockquote>
+<p>挑战地址：<a target="_blank" rel="noopener" href="https://speedrunethereum.com/challenge/tokenization">https://speedrunethereum.com/challenge/tokenization</a></p>
+<p>本文是 Speedrun Ethereum Tokenization 系列第二篇，记录 Checkpoint 3 中 Mint NFT 失败的完整排错过程。</p>
+<p>隐私说明：本文不包含真实钱包地址、交易哈希、部署 URL、IPFS 哈希或本地绝对路径。</p>
+</blockquote>
+<h2 id="系列目录"><a href="#系列目录" class="headerlink" title="系列目录"></a>系列目录</h2><ul>
+<li><a href="!--swig%EF%BF%BC28--">索引：完整排错路线</a></li>
+<li><a href="!--swig%EF%BF%BC29--">上一篇：Checkpoint 2 - Deploy to a Testnet</a></li>
+<li><strong>当前：Checkpoint 3 - Mint NFTs</strong></li>
+<li><a href="!--swig%EF%BF%BC30--">下一篇：Checkpoint 4 - Ship</a></li>
+</ul>
+<h1 id="问题：MetaMask-EIP-7702-智能账户-Mint-时耗尽-gas"><a href="#问题：MetaMask-EIP-7702-智能账户-Mint-时耗尽-gas" class="headerlink" title="问题：MetaMask EIP-7702 智能账户 Mint 时耗尽 gas"></a>问题：MetaMask EIP-7702 智能账户 Mint 时耗尽 gas</h1><blockquote>
+<p><strong>当前 Challenge 步骤：Checkpoint 3 - Mint NFTs</strong></p>
+<p>合约已经部署到 Sepolia，前端也已经连接到新合约。现在正在通过 MetaMask 调用 <code>mintItem</code> 铸造 NFT。</p>
+</blockquote>
+<h2 id="1-现象"><a href="#1-现象" class="headerlink" title="1. 现象"></a>1. 现象</h2><p>合约已经在 Sepolia 部署成功：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">YourCollectible:</span><br><span class="line">&lt;DEPLOYED_CONTRACT_ADDRESS&gt;</span><br></pre></td></tr></table></figure>
+
+<p>前端连接 MetaMask 后点击 Mint，MetaMask 显示交易已经确认，但链上最终失败。</p>
+<p>交易哈希：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;FAILED_MINT_TX_HASH&gt;</span><br></pre></td></tr></table></figure>
+
+<p>交易信息：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">From:</span><br><span class="line">&lt;YOUR_WALLET_ADDRESS&gt;</span><br><span class="line"></span><br><span class="line">To:</span><br><span class="line">&lt;DELEGATION_MANAGER_ADDRESS&gt;</span><br><span class="line"></span><br><span class="line">Type:</span><br><span class="line">4 (EIP-7702)</span><br><span class="line"></span><br><span class="line">Method:</span><br><span class="line">redeemDelegations(bytes[],bytes32[],bytes[])</span><br><span class="line"></span><br><span class="line">Gas Limit:</span><br><span class="line">1,448,890</span><br><span class="line"></span><br><span class="line">Gas Used:</span><br><span class="line">1,124,400</span><br><span class="line"></span><br><span class="line">Status:</span><br><span class="line">failed</span><br></pre></td></tr></table></figure>
+
+<p>表面上看，这笔交易像是在调用 MetaMask Delegation Framework，而不是直接调用 NFT 合约。</p>
+<p>但解码 calldata 后可以看到，内层调用目标是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;DEPLOYED_CONTRACT_ADDRESS&gt;</span><br></pre></td></tr></table></figure>
+
+<p>函数选择器是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0x110bcd45</span><br></pre></td></tr></table></figure>
+
+<p>对应函数：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mintItem(address,string)</span><br></pre></td></tr></table></figure>
+
+<p>所以 MetaMask 的 EIP-7702 智能账户把真正的 <code>mintItem</code> 调用包装在：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redeemDelegations(...)</span><br></pre></td></tr></table></figure>
+
+<p>里面执行。</p>
+<h2 id="2-先排除-ERC-721-Receiver-问题"><a href="#2-先排除-ERC-721-Receiver-问题" class="headerlink" title="2. 先排除 ERC-721 Receiver 问题"></a>2. 先排除 ERC-721 Receiver 问题</h2><p><code>mintItem</code> 内部调用的是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">_safeMint(to, tokenId);</span><br></pre></td></tr></table></figure>
+
+<p>如果 <code>to</code> 是合约，ERC-721 会调用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">onERC721Received(...)</span><br></pre></td></tr></table></figure>
+
+<p>最初我怀疑 MetaMask EIP-7702 账户有代码，但没有实现 ERC-721 Receiver，导致 safe mint 失败。</p>
+<p>链上查询后可以排除这个原因：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">supportsInterface(0x150b7a02) -&gt; true</span><br><span class="line">onERC721Received(...)         -&gt; 0x150b7a02</span><br></pre></td></tr></table></figure>
+
+<p>这说明 MetaMask 智能账户已经正确实现了 ERC-721 Receiver。</p>
+<p>因此失败不是收款账户不支持 NFT safe mint。</p>
+<h2 id="3-重放交易后找到真实失败点"><a href="#3-重放交易后找到真实失败点" class="headerlink" title="3. 重放交易后找到真实失败点"></a>3. 重放交易后找到真实失败点</h2><p>使用 Foundry 重放失败交易：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cast run \</span><br><span class="line">  &lt;FAILED_MINT_TX_HASH&gt; \</span><br><span class="line">  --rpc-url sepolia \</span><br><span class="line">  -vvvv</span><br></pre></td></tr></table></figure>
+
+<p>关键 trace 简化后如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">DelegationManager::redeemDelegations(...)</span><br><span class="line">  -&gt; NativeBalanceChangeEnforcer...</span><br><span class="line">  -&gt; ERC721BalanceChangeEnforcer...</span><br><span class="line">  -&gt; &lt;YOUR_WALLET_ADDRESS&gt;::executeFromExecutor(...)</span><br><span class="line">     -&gt; YourCollectible::mintItem(...)</span><br><span class="line">        -&gt; emit Transfer(...)</span><br><span class="line">        -&gt; onERC721Received(...)</span><br><span class="line">        -&gt; [OutOfGas]</span><br><span class="line">  -&gt; [Revert]</span><br><span class="line">-&gt; [Revert]</span><br></pre></td></tr></table></figure>
+
+<p>这说明：</p>
+<ol>
+<li><code>mintItem</code> 已经被成功调用。</li>
+<li>Transfer 事件已经发出。</li>
+<li>MetaMask 智能账户的 <code>onERC721Received</code> 已经返回正确结果。</li>
+<li>后续执行 token URI 相关逻辑时，内层调用耗尽 gas。</li>
+<li>最外层交易回滚，所以前面的 Mint 状态也全部撤销。</li>
+</ol>
+<p>链上最终状态也能证明回滚：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tokenIdCounter() = 0</span><br><span class="line">balanceOf(&lt;YOUR_WALLET_ADDRESS&gt;) = 0</span><br><span class="line">ownerOf(1) -&gt; ERC721NonexistentToken(1)</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-Gas-数据对比"><a href="#4-Gas-数据对比" class="headerlink" title="4. Gas 数据对比"></a>4. Gas 数据对比</h2><p>失败交易中，内层 <code>mintItem</code> 大约只获得：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">961,602 gas</span><br></pre></td></tr></table></figure>
+
+<p>但直接在 Sepolia 上估算同样的 <code>mintItem</code> 调用，需要：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1,032,313 gas</span><br></pre></td></tr></table></figure>
+
+<p>验证结果：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">961,602 gas  -&gt; out of gas</span><br><span class="line">2,000,000 gas -&gt; 成功</span><br></pre></td></tr></table></figure>
+
+<p>外层 EIP-7702 交易虽然设置了：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1,448,890 gas</span><br></pre></td></tr></table></figure>
+
+<p>但其中相当一部分被以下逻辑消耗：</p>
+<ul>
+<li><code>redeemDelegations</code></li>
+<li>delegation 签名验证</li>
+<li>balance enforcer</li>
+<li>ERC-721 balance enforcer</li>
+<li><code>executeFromExecutor</code></li>
+</ul>
+<p>留给真正 <code>mintItem</code> 的 gas 只有约 <code>961,602</code>，不足以完成需要约 <code>1,032,313 gas</code> 的 Mint。</p>
+<h2 id="5-与问题二的关系"><a href="#5-与问题二的关系" class="headerlink" title="5. 与问题二的关系"></a>5. 与问题二的关系</h2><p>问题二和问题三都属于 <code>OutOfGas</code>，但发生层级不同：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">问题二：Sepolia 部署</span><br><span class="line">    Foundry 估算约 1.895M gas</span><br><span class="line">    Sepolia 实际需要约 10.11M gas</span><br><span class="line">    -&gt; 部署交易 OutOfGas</span><br><span class="line"></span><br><span class="line">问题三：MetaMask EIP-7702 Mint</span><br><span class="line">    外层交易有约 1.45M gas</span><br><span class="line">    包装逻辑消耗大量 gas</span><br><span class="line">    内层 mintItem 只剩约 961k gas</span><br><span class="line">    mintItem 实际需要约 1.032M gas</span><br><span class="line">    -&gt; 内层调用 OutOfGas</span><br></pre></td></tr></table></figure>
+
+<p>两者的共同点是 gas 不足。</p>
+<p>不同点是：</p>
+<ul>
+<li>问题二是 Foundry 对部署交易的估算偏低。</li>
+<li>问题三是 MetaMask EIP-7702 包装交易产生了额外 gas 开销。</li>
+</ul>
+<h2 id="6-推荐解决方案一：使用普通-MetaMask-EOA"><a href="#6-推荐解决方案一：使用普通-MetaMask-EOA" class="headerlink" title="6. 推荐解决方案一：使用普通 MetaMask EOA"></a>6. 推荐解决方案一：使用普通 MetaMask EOA</h2><p>这个挑战的标准流程默认使用普通 EOA。</p>
+<p>如果 MetaMask 地址已经开启 Smart Account，并被升级为 EIP-7702 委托账户，Mint 交易就会经过 <code>redeemDelegations</code>，额外 gas 开销明显增加。</p>
+<p>最简单、最稳定的解决方式是：</p>
+<ol>
+<li>在 MetaMask 中切换到普通 EOA 账户。</li>
+<li>确保账户连接到 Sepolia。</li>
+<li>使用 Sepolia 测试 ETH。</li>
+<li>在前端重新点击 Mint。</li>
+</ol>
+<p>普通 EOA 直接调用 <code>mintItem</code> 时，不需要经过 delegation 包装，gas 开销会小很多。</p>
+<h2 id="7-推荐解决方案二：为前端-Mint-请求提高-gas"><a href="#7-推荐解决方案二：为前端-Mint-请求提高-gas" class="headerlink" title="7. 推荐解决方案二：为前端 Mint 请求提高 gas"></a>7. 推荐解决方案二：为前端 Mint 请求提高 gas</h2><p>前端 Mint 代码位于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">packages/nextjs/app/myNFTs/page.tsx</span><br></pre></td></tr></table></figure>
+
+<p>原来的调用：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">await</span> <span class="title function_">writeContractAsync</span>(&#123;</span><br><span class="line">  <span class="attr">functionName</span>: <span class="string">&quot;mintItem&quot;</span>,</span><br><span class="line">  <span class="attr">args</span>: [connectedAddress, uploadedItem.<span class="property">path</span>],</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>可以改为：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">await</span> <span class="title function_">writeContractAsync</span>(&#123;</span><br><span class="line">  <span class="attr">functionName</span>: <span class="string">&quot;mintItem&quot;</span>,</span><br><span class="line">  <span class="attr">args</span>: [connectedAddress, uploadedItem.<span class="property">path</span>],</span><br><span class="line">  <span class="attr">gas</span>: <span class="number">3000000n</span>,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>增加的是：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">gas</span>: <span class="number">3000000n</span>,</span><br></pre></td></tr></table></figure>
+
+<p>直接 Mint 实际需要约 <code>1,032,313 gas</code>。设置 <code>3,000,000</code> 是为了给 EIP-7702 包装逻辑预留足够空间。</p>
+<p>修改后需要：</p>
+<ol>
+<li>保存文件。</li>
+<li>等待 Next.js 编译完成。</li>
+<li>强制刷新网页，例如 <code>Command + Shift + R</code>。</li>
+<li>重新发起 Mint。</li>
+<li>在 MetaMask 中确认 gas limit 确实提高。</li>
+</ol>
+<p>如果 MetaMask 仍然强制使用自己的 gas 估算，或者交易依旧是低 gas 的 <code>redeemDelegations</code>，则应使用普通 EOA 或 CLI 方案。</p>
+<h2 id="8-推荐解决方案三：使用-CLI-直接-Mint"><a href="#8-推荐解决方案三：使用-CLI-直接-Mint" class="headerlink" title="8. 推荐解决方案三：使用 CLI 直接 Mint"></a>8. 推荐解决方案三：使用 CLI 直接 Mint</h2><p><code>mintItem</code> 没有访问控制限制，任何账户都可以调用。</p>
+<p>因此可以使用已经创建的：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sepolia-deployer</span><br></pre></td></tr></table></figure>
+
+<p>发起 Mint，并把 NFT 直接铸给 MetaMask 地址：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> <span class="string">&quot;/path/to/challenge-tokenization/packages/foundry&quot;</span></span><br><span class="line"></span><br><span class="line">cast send &lt;DEPLOYED_CONTRACT_ADDRESS&gt; \</span><br><span class="line">  <span class="string">&quot;mintItem(address,string)&quot;</span> \</span><br><span class="line">  &lt;YOUR_WALLET_ADDRESS&gt; \</span><br><span class="line">  <span class="string">&quot;&lt;IPFS_HASH&gt;&quot;</span> \</span><br><span class="line">  --account sepolia-deployer \</span><br><span class="line">  --rpc-url sepolia \</span><br><span class="line">  --gas-limit 2000000</span><br></pre></td></tr></table></figure>
+
+<p>输入 <code>sepolia-deployer</code> 的密码。</p>
+<p>成功后：</p>
+<ul>
+<li>NFT 会属于：</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;YOUR_WALLET_ADDRESS&gt;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>tokenIdCounter</code> 会变成 <code>1</code></li>
+<li><code>balanceOf(&lt;YOUR_WALLET_ADDRESS&gt;)</code> 会变成 <code>1</code></li>
+<li>前端刷新后应该能看到这个 NFT</li>
+</ul>
+<p>这种方式绕过了 MetaMask EIP-7702 包装层，适合先完成挑战和验证合约。</p>
+<h2 id="9-Mint-问题复盘"><a href="#9-Mint-问题复盘" class="headerlink" title="9. Mint 问题复盘"></a>9. Mint 问题复盘</h2><p>遇到 MetaMask “已确认但前端报错”时，不要只看钱包确认页面，还要检查：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">交易类型</span><br><span class="line">外层调用的函数</span><br><span class="line">链上 receipt status</span><br><span class="line">实际 gasUsed</span><br><span class="line">内层调用 trace</span><br></pre></td></tr></table></figure>
+
+<p>本次交易的类型和函数：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Type 4</span><br><span class="line">redeemDelegations</span><br></pre></td></tr></table></figure>
+
+<p>说明它经过了 MetaMask EIP-7702 智能账户包装，而不是普通 ERC-721 调用。</p>
+<p>最终 trace：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mintItem -&gt; Transfer -&gt; onERC721Received -&gt; OutOfGas</span><br></pre></td></tr></table></figure>
+
+<p>说明不是合约不接受 NFT，也不是 Solidity 业务条件 revert，而是内层调用拿到的 gas 不够。</p>
+<hr>
+<h2 id="下一篇"><a href="#下一篇" class="headerlink" title="下一篇"></a>下一篇</h2><p>Checkpoint 3 完成后，继续阅读：</p>
+<p><a href="!--swig%EF%BF%BC59--">Checkpoint 4 - Ship</a></p>
+<p>返回：<a href="!--swig%EF%BF%BC60--">完整排错路线</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Zeo Kuang</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2026/10/09/speedrun-tokenization-checkpoint-3-mint/">http://example.com/2026/10/09/speedrun-tokenization-checkpoint-3-mint/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">Stitch's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Problems-solving/">Problems solving</a><a class="post-meta__tags" href="/tags/Speedrun-Ethereum/">Speedrun Ethereum</a><a class="post-meta__tags" href="/tags/Tokenization/">Tokenization</a><a class="post-meta__tags" href="/tags/MetaMask/">MetaMask</a><a class="post-meta__tags" href="/tags/EIP-7702/">EIP-7702</a><a class="post-meta__tags" href="/tags/ERC-721/">ERC-721</a></div><div class="post-share"><div class="social-share" data-image="/img/profile_photo.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/10/09/speedrun-tokenization-index/" title="Speedrun Ethereum Tokenization 实战排错索引"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Speedrun Ethereum Tokenization 实战排错索引</div></div><div class="info-2"><div class="info-item-1">Speedrun Ethereum Tokenization 实战排错索引 挑战地址：https://speedrunethereum.com/challenge/tokenization 本文是 Speedrun Ethereum Tokenization 实战排错系列索引。正文按 Challenge Checkpoint 拆成三篇，方便按实际开发顺序阅读和排查。 隐私说明：全系列不包含真实钱包地址、合约地址、交易哈希、部署 URL、团队名、项目名、IPFS 哈希或本地绝对路径。  文章目录   顺序 Challenge 步骤 文章 主要内容    1 Checkpoint 2: Deploy to a Testnet 账户生成与 Sepolia 部署排错 yarn generate 私钥解析失败、Sepolia 部署 OutOfGas   2 Checkpoint 3: Mint NFTs MetaMask Mint 交易耗尽 gas EIP-7702 包装交易、内层 mintItem gas 不足、trace 分析   3 Checkpoint 4: Ship Vercel...</div></div></div></a><a class="pagination-related" href="/2026/10/09/speedrun-tokenization-checkpoint-2-deploy/" title="Speedrun Ethereum Tokenization Checkpoint 2 - 账户生成与 Sepolia 部署排错"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Speedrun Ethereum Tokenization Checkpoint 2 - 账户生成与 Sepolia 部署排错</div></div><div class="info-2"><div class="info-item-1">Checkpoint 2：账户生成与 Sepolia 部署排错 挑战地址：https://speedrunethereum.com/challenge/tokenization 本文是 Speedrun Ethereum Tokenization 系列第一篇，记录 Checkpoint 2 中账户生成和 Sepolia 部署的两个问题。 隐私说明：本文不包含真实钱包地址、交易哈希、部署 URL、IPFS 哈希或本地绝对路径。  系列目录 索引：完整排错路线 当前：Checkpoint 2 - Deploy to a Testnet 下一篇：Checkpoint 3 - Mint NFTs 最后篇：Checkpoint 4 - Ship  背景这个挑战要求使用 Scaffold-ETH 2 和 Foundry 完成一个 ERC-721 NFT 项目 YourCollectible，流程包括：  编写和编译 ERC-721 合约 生成部署账户 部署到本地链 部署到 Sepolia 更新前端合约地址和 ABI  Checkpoint 2 中遇到了两个问题：  yarn generate...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/10/09/speedrun-tokenization-checkpoint-4-ship/" title="Speedrun Ethereum Tokenization Checkpoint 4 - Vercel 前端构建依赖修复"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-10-09</div><div class="info-item-2">Speedrun Ethereum Tokenization Checkpoint 4 - Vercel 前端构建依赖修复</div></div><div class="info-2"><div class="info-item-1">Checkpoint 4：Vercel 前端构建缺少 @x402/* 依赖 挑战地址：https://speedrunethereum.com/challenge/tokenization 本文是 Speedrun Ethereum Tokenization 系列第三篇，记录 Checkpoint 4 发布前端时的 Vercel 构建依赖问题。 隐私说明：本文不包含真实钱包地址、交易哈希、部署 URL、团队名、项目名或本地绝对路径。  系列目录 索引：完整排错路线 上一篇：Checkpoint 3 - Mint NFTs 当前：Checkpoint 4 - Ship  问题：Vercel 构建缺少 @x402/* 依赖 当前 Challenge 步骤：Checkpoint 4 - Ship 合约和 Mint 流程已经完成，现在正在使用 Vercel 发布前端，为最终提交挑战准备公开网址。  1. Vercel 命令在项目根目录执行： 1yarn vercel --prod  Vercel CLI 成功完成登录和项目链接： 1Linked to your-team/your-pro...</div></div></div></a><a class="pagination-related" href="/2026/10/09/speedrun-tokenization-index/" title="Speedrun Ethereum Tokenization 实战排错索引"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-10-09</div><div class="info-item-2">Speedrun Ethereum Tokenization 实战排错索引</div></div><div class="info-2"><div class="info-item-1">Speedrun Ethereum Tokenization 实战排错索引 挑战地址：https://speedrunethereum.com/challenge/tokenization 本文是 Speedrun Ethereum Tokenization 实战排错系列索引。正文按 Challenge Checkpoint 拆成三篇，方便按实际开发顺序阅读和排查。 隐私说明：全系列不包含真实钱包地址、合约地址、交易哈希、部署 URL、团队名、项目名、IPFS 哈希或本地绝对路径。  文章目录   顺序 Challenge 步骤 文章 主要内容    1 Checkpoint 2: Deploy to a Testnet 账户生成与 Sepolia 部署排错 yarn generate 私钥解析失败、Sepolia 部署 OutOfGas   2 Checkpoint 3: Mint NFTs MetaMask Mint 交易耗尽 gas EIP-7702 包装交易、内层 mintItem gas 不足、trace 分析   3 Checkpoint 4: Ship Vercel...</div></div></div></a><a class="pagination-related" href="/2026/10/09/speedrun-tokenization-checkpoint-2-deploy/" title="Speedrun Ethereum Tokenization Checkpoint 2 - 账户生成与 Sepolia 部署排错"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-10-09</div><div class="info-item-2">Speedrun Ethereum Tokenization Checkpoint 2 - 账户生成与 Sepolia 部署排错</div></div><div class="info-2"><div class="info-item-1">Checkpoint 2：账户生成与 Sepolia 部署排错 挑战地址：https://speedrunethereum.com/challenge/tokenization 本文是 Speedrun Ethereum Tokenization 系列第一篇，记录 Checkpoint 2 中账户生成和 Sepolia 部署的两个问题。 隐私说明：本文不包含真实钱包地址、交易哈希、部署 URL、IPFS 哈希或本地绝对路径。  系列目录 索引：完整排错路线 当前：Checkpoint 2 - Deploy to a Testnet 下一篇：Checkpoint 3 - Mint NFTs 最后篇：Checkpoint 4 - Ship  背景这个挑战要求使用 Scaffold-ETH 2 和 Foundry 完成一个 ERC-721 NFT 项目 YourCollectible，流程包括：  编写和编译 ERC-721 合约 生成部署账户 部署到本地链 部署到 Sepolia 更新前端合约地址和 ABI  Checkpoint 2 中遇到了两个问题：  yarn generate...</div></div></div></a><a class="pagination-related" href="/2026/10/03/%E2%80%9CProblems-When-Using-Remix%E2%80%9D/" title="“Problems_When_Using_Remix”"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-10-03</div><div class="info-item-2">“Problems_When_Using_Remix”</div></div><div class="info-2"><div class="info-item-1">Remix 部署智能合约时 WalletConnect 与 MetaMask 的常见问题与解决方案在 Remix 中使用 WalletConnect 连接 MetaMask 测试运行智能合约时，我遇到了两个容易混淆的问题：  MetaMask 或 Remix 上方显示 Invalid App configuration。 点击 Deploy 后，Deployed Contracts 中没有出现合约实例，但交易历史里有记录。  这两个现象通常不是合约代码本身的问题，而是 Remix 域名、WalletConnect&#x2F;Reown 配置和交易回执共同导致的。 结论速览如果使用 WalletConnect 连接 MetaMask，建议打开： 1https://remix.ethereum.org/?nomigrationredirect  不要默认使用： 1https://app.remix.live  原因是 app.remix.live 可能不在 Remix 使用的 Reown&#x2F;WalletConnect 项目白名单中，而 remix.ethereum.org 在...</div></div></div></a><a class="pagination-related" href="/2026/05/18/other-computer-connect-to-blog/" title="使用其它电脑连接博客"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-18</div><div class="info-item-2">使用其它电脑连接博客</div></div><div class="info-2"><div class="info-item-1">使用其它电脑连接博客简介使用其它电脑设备连接自己的博客主要是需要将密钥添加到GitHub适用于将电脑重装系统或者换电脑后,需要连接博客的情况。   步骤 确保重装后&#x2F;换了的电脑安装了git,node.js和hexo若没安装,以下是安装的网址:node.js官网安装完成后在终端输入node -v查看是否安装成功git官网安装hexo输入以下命令:npm install -g hexo-cli可能会出现几个错误,可以忽略查询一下版本号: hexo -v    生成SSH密钥在git bash中生成SSH密钥:$ ssh-keygen -t ed25519 -C &quot;your_email@xxx.com&quot;这里的ed25519是一种加密算法,可以有效防止中间人攻击。邮箱填写自己GitHub注册的邮箱。之后会在用户目录下生成.ssh文件夹,里面有两个文件id_ed25519和id_ed25519.pub。将id_ed25519.pub的内容复制到GitHub-Settings-SSH and GPG keys中。点击New SSH key,将公钥粘贴进去,点击A...</div></div></div></a><a class="pagination-related" href="/2026/05/19/PowerShell-execution-policy-restrictions/" title="PowerShell执行策略限制处理方法"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-19</div><div class="info-item-2">PowerShell执行策略限制处理方法</div></div><div class="info-2"><div class="info-item-1">PowerShell执行策略限制处理方法问题描述在重装系统后,我重新安装了anaconda,但是在执行.py文件的时候遇到了以下问题:问题显示系统上禁止运行脚本,而conda init修改了Power Shell配置文件,导致并不能进入到conda环境中不论如何conda init然后conda activate都会提示Run ‘conda init’ before ‘conda activate’   解决方法使用管理员权限打开Power Shell, 输入Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser然后输入Y确认即可重新打开Power Shell, 输入conda init和conda activate即可进入到conda环境中   注意别忘记在Python: Selected Interpreter中选择conda环境   </div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/profile_photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Zeo Kuang</div><div class="author-info-description">A graduate student in Artificial Intelligence and Business Analysis at Lingnan University in HongKong</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Coming soon...</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Checkpoint-3%EF%BC%9AMetaMask-Mint-%E4%BA%A4%E6%98%93%E8%80%97%E5%B0%BD-gas"><span class="toc-number">1.</span> <span class="toc-text">Checkpoint 3：MetaMask Mint 交易耗尽 gas</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B3%BB%E5%88%97%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">系列目录</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%EF%BC%9AMetaMask-EIP-7702-%E6%99%BA%E8%83%BD%E8%B4%A6%E6%88%B7-Mint-%E6%97%B6%E8%80%97%E5%B0%BD-gas"><span class="toc-number">2.</span> <span class="toc-text">问题：MetaMask EIP-7702 智能账户 Mint 时耗尽 gas</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%8E%B0%E8%B1%A1"><span class="toc-number">2.1.</span> <span class="toc-text">1. 现象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%85%88%E6%8E%92%E9%99%A4-ERC-721-Receiver-%E9%97%AE%E9%A2%98"><span class="toc-number">2.2.</span> <span class="toc-text">2. 先排除 ERC-721 Receiver 问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%87%8D%E6%94%BE%E4%BA%A4%E6%98%93%E5%90%8E%E6%89%BE%E5%88%B0%E7%9C%9F%E5%AE%9E%E5%A4%B1%E8%B4%A5%E7%82%B9"><span class="toc-number">2.3.</span> <span class="toc-text">3. 重放交易后找到真实失败点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Gas-%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%AF%94"><span class="toc-number">2.4.</span> <span class="toc-text">4. Gas 数据对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E4%B8%8E%E9%97%AE%E9%A2%98%E4%BA%8C%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">2.5.</span> <span class="toc-text">5. 与问题二的关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%8E%A8%E8%8D%90%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E4%BD%BF%E7%94%A8%E6%99%AE%E9%80%9A-MetaMask-EOA"><span class="toc-number">2.6.</span> <span class="toc-text">6. 推荐解决方案一：使用普通 MetaMask EOA</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E6%8E%A8%E8%8D%90%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9A%E4%B8%BA%E5%89%8D%E7%AB%AF-Mint-%E8%AF%B7%E6%B1%82%E6%8F%90%E9%AB%98-gas"><span class="toc-number">2.7.</span> <span class="toc-text">7. 推荐解决方案二：为前端 Mint 请求提高 gas</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E6%8E%A8%E8%8D%90%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9A%E4%BD%BF%E7%94%A8-CLI-%E7%9B%B4%E6%8E%A5-Mint"><span class="toc-number">2.8.</span> <span class="toc-text">8. 推荐解决方案三：使用 CLI 直接 Mint</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-Mint-%E9%97%AE%E9%A2%98%E5%A4%8D%E7%9B%98"><span class="toc-number">2.9.</span> <span class="toc-text">9. Mint 问题复盘</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8B%E4%B8%80%E7%AF%87"><span class="toc-number">2.10.</span> <span class="toc-text">下一篇</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/09/speedrun-tokenization-checkpoint-2-deploy/" title="Speedrun Ethereum Tokenization Checkpoint 2 - 账户生成与 Sepolia 部署排错">Speedrun Ethereum Tokenization Checkpoint 2 - 账户生成与 Sepolia 部署排错</a><time datetime="2026-10-08T16:00:00.000Z" title="发表于 2026-10-09 00:00:00">2026-10-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/09/speedrun-tokenization-checkpoint-3-mint/" title="Speedrun Ethereum Tokenization Checkpoint 3 - MetaMask Mint 交易耗尽 Gas">Speedrun Ethereum Tokenization Checkpoint 3 - MetaMask Mint 交易耗尽 Gas</a><time datetime="2026-10-08T16:00:00.000Z" title="发表于 2026-10-09 00:00:00">2026-10-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/09/speedrun-tokenization-index/" title="Speedrun Ethereum Tokenization 实战排错索引">Speedrun Ethereum Tokenization 实战排错索引</a><time datetime="2026-10-08T16:00:00.000Z" title="发表于 2026-10-09 00:00:00">2026-10-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/09/speedrun-tokenization-checkpoint-4-ship/" title="Speedrun Ethereum Tokenization Checkpoint 4 - Vercel 前端构建依赖修复">Speedrun Ethereum Tokenization Checkpoint 4 - Vercel 前端构建依赖修复</a><time datetime="2026-10-08T16:00:00.000Z" title="发表于 2026-10-09 00:00:00">2026-10-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/03/%E2%80%9CProblems-When-Using-Remix%E2%80%9D/" title="“Problems_When_Using_Remix”">“Problems_When_Using_Remix”</a><time datetime="2026-10-03T14:29:15.000Z" title="发表于 2026-10-03 22:29:15">2026-10-03</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Zeo Kuang</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'StitchK/StitchK.github.io',
+      'data-repo-id': 'R_kgDOSVm-dA',
+      'data-category-id': 'DIC_kwDOSVm-dM4C8blz',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
